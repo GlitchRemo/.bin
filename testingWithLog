@@ -1,0 +1,127 @@
+//---------------------------------------------- TESTING PROTOTYPE ------------------------------------------------------
+
+const style = function(text, code) {
+  return "\033[" + code + "m" + text + "\033[0m";
+}
+
+const redFg = function(text) {
+  return style(text, 31);
+}
+
+const greenFg = function(text) {
+  return style(text, 32);
+}
+
+const yellowFg = function(text) {
+  return style(text, 33);
+}
+
+const bold = function(text) {
+  return style(text, 1);
+}
+
+const underline = function(text) {
+  return style(text, 4);
+}
+
+const printHeadline = function(text) {
+  console.log(yellowFg(bold(underline(text))));
+}
+
+const isApproximatelySame = function(expected, actual, precision) {
+  if(expected === actual) {
+    return true;
+  }
+
+  return actual >= (expected - precision) && actual <= (expected + precision) ;
+}
+
+const isEqual = function(list1, list2) {
+  if (list1.length === 0 && list2.length === 0) return true;
+
+  if (list1.length !== list2.length) return false;
+
+  if (list1[0] !== list2[0]) return false;
+
+  return isEqual(list1.slice(1), list2.slice(1)); 
+}
+
+const generateSuccessMessage = function(message) {
+  return message;
+}
+
+const generateFailureMessage = function(expected, actual, message) {
+  const expectedValue = "  Expected: " + expected;
+  const actualValue = "  Actual:" + actual;
+
+  return  message + expectedValue + actualValue;
+}
+
+let passedAssertions = 0;
+const getPassedAssertions = function() {
+  return passedAssertions;
+}
+
+let totalAssertions = 0;
+const getTotalAssertions = function() {
+  return totalAssertions;
+}
+
+let testLog = {};
+const maintainTestLog = function(message, expected, actual, isTestPassed, functionName) {
+  const icon = isTestPassed ? "✅" : "❌";
+  passedAssertions += isTestPassed;
+  totalAssertions++;
+  if(testLog[functionName] === undefined) testLog[functionName] = [];
+  testLog[functionName].push({icon, message, expected, actual, isTestPassed});
+}
+
+const showTestLog = function(functionName) {
+  printHeadline(functionName);
+  console.table(testLog[functionName], ["icon", "message"]);
+}
+
+const showTestSummary = function() {
+  const passedAssertions = getPassedAssertions();
+  const totalAssertions = getTotalAssertions();
+  console.log("Summary : ", passedAssertions, "/", totalAssertions, "passed");
+}
+
+const generateTestResult = function(isTestPassed, expected, actual, testName, functionName) {
+  const successMessage = generateSuccessMessage(testName); 
+  const failureMessage = generateFailureMessage(expected, actual, testName); 
+
+  const message = isTestPassed ? successMessage : failureMessage;
+
+  maintainTestLog(message, expected, actual, isTestPassed, functionName);
+}
+
+const assert = function(expected, actual, testName, functionName) {
+  generateTestResult(isApproximatelySame(actual, expected, 0.01), expected, actual, testName, functionName); 
+}
+
+const assertArrayEqual = function(expected, actual, testName, functionName) {
+  generateTestResult(isEqual(actual, expected), expected, actual, testName, functionName);
+}
+
+
+//----------------------------------------- USAGE PROTOYPE --------------------------------------------------- 
+
+// When expected and actual are arrays
+
+/* const runTestFunctionName = function() {
+ **   assertArrayEqual([ ], functionName([ 8, 2, 2, 4 ]), "Type of arguments given", "functionName");
+ ** }
+
+ ** When expected and actual are of types other than array
+
+ ** const runTestFunctionName = function() {
+ **   assert(true, functionName([ 8, 2, 2, 4 ]), "Type of arguments given", "functionName");
+ ** }
+ **
+ ** showTestLog("functionName");
+ ** showTestSummary();
+ */
+
+//------------------------------------------------------------------------------------------------------------- 
+
