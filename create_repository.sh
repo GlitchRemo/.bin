@@ -1,36 +1,58 @@
 #! /bin/bash
 
-function scaffolding() {
+function source_file() {
+  echo "
+  const $NAME_IN_KEBAB_CASE = function() {
+  return 1;
+
+  exports.$NAME_IN_KEBAB_CASE = $NAME_IN_KEBAB_CASE
+}
+"
+}
+
+function test_file() {
+  echo "
+  const {describe, it} = require('node:test');
+  const {strictEqual, deepStrictEqual} = require('assert');
+  const {$NAME_IN_KEBAB_CASE} = require('../src/$PROJECT_NAME.js');
+
+  describe('', function() {
+  it('', function() {
+  strictEqual(1, 1);
+});
+});
+"
+}
+
+function create_Repo() {
   PROJECT_NAME=$1
 
   # setting up repository
-  mkdir -p $PROJECT_NAME/src $PROJECT_NAME/lib $PROJECT_NAME/test
+  mkdir -p $PROJECT_NAME/src $PROJECT_NAME/test
   cd $PROJECT_NAME
 
-  # setting up all files
-  cp ~/workspace/js/.lib/testing.js lib/
-  cp ~/workspace/js/.lib/return_one.js src/$PROJECT_NAME.js
-  cp ~/workspace/js/.lib/test_prototype.js test/${PROJECT_NAME}-test.js
+  # snake case to kebab case
+  NAME_IN_KEBAB_CASE=$(node -p "'$PROJECT_NAME'.replace(/-/g, '_')")
 
-  # correcting variable names
-  sed -i "" -e "s/projectName/${PROJECT_NAME}/g" test/${PROJECT_NAME}-test.js
-  SOURCE_OBJECT_NAME=$(echo ${PROJECT_NAME} | gsed "s/-\(.\)/\U\1/g")
-  sed -i "" -e "s/source/${SOURCE_OBJECT_NAME}/g" test/${PROJECT_NAME}-test.js
+  # set up source file
+  source_file > src/$PROJECT_NAME.js
 
-  # building runtest.sh
-  echo -e "#! /bin/bash \nnode test/${PROJECT_NAME}-test.js" > runtest.sh
-  chmod +x runtest.sh
+  # set up test file
+  test_file > test/$PROJECT_NAME-test.js
 
   # setting up .gitignore file to ignore .swp files
-  echo "*.swp" > .gitignore
+  echo "
+  *.swp
+  DS.*
+  " > .gitignore
 
   # git init
   git init
   git add .
   git status
 
-  # launching us to project repository
-  # cd $PROJECT_NAME
+  # run a test
+  node test/*
 }
 
-scaffolding $1
+create_Repo $1
